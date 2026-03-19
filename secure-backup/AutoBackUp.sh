@@ -24,7 +24,7 @@ while [[ $# -gt 0 ]]; do
             BACKUP_DIR="$2"
             shift 2
             ;;
-        -t|--target)
+        -t|--target-directory)
             USE_CLI_OPTIONS=true
             TARGET_DIR="$2"
             shift 2
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -h|--help)
             if [[ "$USE_CLI_OPTIONS" == "false" ]]; then
-                echo "Usage: $0 [-f config_file] OR [-d directories -t target]"
+                echo "Usage: $0 [-f config_file] OR [-d "source dir" -t "destination dir"]"
                 exit 0
             else
                 echo "Help can't be used with other options!"
@@ -55,12 +55,32 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Enforce mutuality
+if [[ "$USE_CONFIG" == "true" && "$USE_CLI_OPTIONS" == "true"  ]]; then
+    echo "Error: -f option can't be combined with other CLI arguments"
+    exit 1
+fi
+
+# Apply options based oņ user choice
+if [[ "$USE_CONFIG" == "true" ]]; then
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "Error: Config file not found at $CONFIG_FILE"
+        exit 1
+    fi
+    echo "Loading configuration file from $CONFIG_FILE"
+    source "$CONFIG_FILE"
+
+elif [[ "$USE_CLI_OPTIONS" == "true" ]]; then
+    # Validate Required Values
+    if [[ -z "$BACKUP_DIR" || -z "$TARGET_DIR" ]]; then
+        echo "Error: Specify backup directory [-d] AND destination directory [-t]"
+        exit 1
+    fi
+else
+    echo "Error: No arguments provided. Run '$0 -h' for help."
+    exit 1
+fi
+
 # Apply Default Values
 CLEANUP_DAYS="${CLEANUP_DAYS:-7}"
 DISK_SECURE="${DISK_SECURE:-false}" 
-
-# Validate Required Values
-if [[ -z "$BACKUP_DIR" || -z "$TARGET_DIR" ]]; then
-    echo "Specify backup directory [-d] AND target tar file [-t]"
-    exit 2
-fi
