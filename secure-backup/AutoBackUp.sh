@@ -8,6 +8,8 @@ USE_CLI_OPTIONS=false
 # Script Vars
 BACKUP_DIR=""
 TARGET_DIR=""
+TARGET_DEV=""
+SOURCE_DEV=""
 CLEANUP_DAYS=""
 DISK_SECURE=""
 
@@ -83,4 +85,32 @@ fi
 
 # Apply Default Values
 CLEANUP_DAYS="${CLEANUP_DAYS:-7}"
-DISK_SECURE="${DISK_SECURE:-false}" 
+DISK_SECURE="${DISK_SECURE:-false}"
+
+# Check source and destination directories
+if [[ ! -d "$TARGET_DIR" ]]; then
+    echo "Error: Destination does not exist"
+    exit 1
+fi
+
+TARGET_DEV=$( stat -c "%d" "$TARGET_DIR")
+
+for SOURCE in $BACKUP_DIR; do
+    if [[ ! -d "$SOURCE" ]]; then
+        echo "Error: Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
+        continue
+    fi
+
+    SOURCE_DEV=$( stat -c "%d" "$SOURCE")
+
+    if [[ "$SOURCE_DEV" == "$TARGET_DEV" ]]; then
+
+        echo "Warning: Backing Up to the same mount point (device)"
+        if [[ "$DISK_SECURE" == "true" ]]; then
+            echo "Error: Secure Option is Specified. Quitting..."
+            exit 1
+        else
+            echo "Info: Disk Secure is not specified - processing anyway"
+        fi
+    fi
+done
