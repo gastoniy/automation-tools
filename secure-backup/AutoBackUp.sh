@@ -12,6 +12,7 @@ TARGET_DEV=""
 SOURCE_DEV=""
 CLEANUP_DAYS=""
 DISK_SECURE=""
+CURRENT_DATE=$(date +%F-%H:%M)
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -117,8 +118,36 @@ done
 
 # Archive Source Dirs
 for SOURCE in $BACKUP_DIR; do 
-    tar --zstd -cp \
+    # Define paths
+    BASE_NAME=$(basename "$SOURCE")
+    DIR_NAME=$(dirname "$SOURCE")
+    ARCHIVE_PATH="$TARGET_DIR/${BASE_NAME}-${CURRENT_DATE}.tar.zst"
+
+    echo "Info: Backing up $SOURCE to $ARCHIVE_PATH"
+
+    tar -I "zstd -T0" -cp \
     --numeric-owner \
-    -f "$TARGET_DIR"/"$(basename "$SOURCE")"-"$(date +%F)".tar.zst \
-    -C "$(dirname "$SOURCE")" "$(basename "$SOURCE")"
+    -f "$ARCHIVE_PATH" \
+    -C "$DIR_NAME" "$BASE_NAME"
+
+    # Check tar exit status
+    TAR_EXIT=$?
+
+    if [[ "$TAR_EXIT" -eq 2 ]]; then
+        echo "Error: tar encountered a fatal error backing up $SOURCE."
+        rm -f "$ARCHIVE_PATH"
+        continue
+    elif [[ "$TAR_EXIT" -eq 1 ]]; then
+        echo "WARNING: tar completed, but some files were modified during the backup. Path: $ARCHIVE_PATH"
+    else
+        echo "INFO: tar archive created. Path: $ARCHIVE_PATH"
+    fi
+
+    # Verify the archive
+    if tar -I "zstd -T0" -tf "$ARCHIVE_PATH" > /dev/null; then
+        echo "INFO: Archive Verified"
+    else
+        echo "Error: Archive corrupted"
+        exit 1
+    fi
 done
