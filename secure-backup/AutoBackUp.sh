@@ -114,3 +114,11 @@ for SOURCE in $BACKUP_DIR; do
         fi
     fi
 done
+
+# Archive Source Dirs
+for SOURCE in $BACKUP_DIR; do 
+    tar --zstd -cp \
+    --numeric-owner \
+    -f "$TARGET_DIR"/"$(basename "$SOURCE")"-"$(date +%F)".tar.zst \
+    -C "$(dirname "$SOURCE")" "$(basename "$SOURCE")"
+done
