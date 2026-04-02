@@ -60,27 +60,27 @@ done
 
 # Enforce mutuality
 if [[ "$USE_CONFIG" == "true" && "$USE_CLI_OPTIONS" == "true"  ]]; then
-    echo "Error: -f option can't be combined with other CLI arguments"
+    echo "ERROR: -f option can't be combined with other CLI arguments"
     exit 1
 fi
 
 # Apply options based oņ user choice
 if [[ "$USE_CONFIG" == "true" ]]; then
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        echo "Error: Config file not found at $CONFIG_FILE"
+        echo "ERROR: Config file not found at $CONFIG_FILE"
         exit 1
     fi
-    echo "Loading configuration file from $CONFIG_FILE"
+    echo "INFO: Loading configuration file from $CONFIG_FILE"
     source "$CONFIG_FILE"
 
 elif [[ "$USE_CLI_OPTIONS" == "true" ]]; then
     # Validate Required Values
     if [[ -z "$BACKUP_DIR" || -z "$TARGET_DIR" ]]; then
-        echo "Error: Specify backup directory [-d] AND destination directory [-t]"
+        echo "ERROR: Specify backup directory [-d] AND destination directory [-t]"
         exit 1
     fi
 else
-    echo "Error: No arguments provided. Run '$0 -h' for help."
+    echo "ERROR: No arguments provided. Run '$0 -h' for help."
     exit 1
 fi
 
@@ -90,7 +90,7 @@ DISK_SECURE="${DISK_SECURE:-false}"
 
 # Check source and destination directories
 if [[ ! -d "$TARGET_DIR" ]]; then
-    echo "Error: Destination does not exist"
+    echo "ERROR: Destination does not exist"
     exit 1
 fi
 
@@ -98,7 +98,7 @@ TARGET_DEV=$( stat -c "%d" "$TARGET_DIR")
 
 for SOURCE in $BACKUP_DIR; do
     if [[ ! -d "$SOURCE" ]]; then
-        echo "Error: Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
+        echo "ERROR: Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
         continue
     fi
 
@@ -106,12 +106,12 @@ for SOURCE in $BACKUP_DIR; do
 
     if [[ "$SOURCE_DEV" == "$TARGET_DEV" ]]; then
 
-        echo "Warning: Backing Up to the same mount point (device)"
+        echo "WARNING: Backing Up to the same mount point (device)"
         if [[ "$DISK_SECURE" == "true" ]]; then
-            echo "Error: Secure Option is Specified. Quitting..."
+            echo "ERROR: Secure Option is Specified. Quitting..."
             exit 1
         else
-            echo "Info: Disk Secure is not specified - processing anyway"
+            echo "INFO: Disk Secure is not specified - processing anyway"
         fi
     fi
 done
@@ -123,7 +123,7 @@ for SOURCE in $BACKUP_DIR; do
     DIR_NAME=$(dirname "$SOURCE")
     ARCHIVE_PATH="$TARGET_DIR/${BASE_NAME}-${CURRENT_DATE}.tar.zst"
 
-    echo "Info: Backing up $SOURCE to $ARCHIVE_PATH"
+    echo "INFO: Backing up $SOURCE to $ARCHIVE_PATH"
 
     tar -I "zstd -T0" -cp \
     --numeric-owner \
@@ -134,7 +134,7 @@ for SOURCE in $BACKUP_DIR; do
     TAR_EXIT=$?
 
     if [[ "$TAR_EXIT" -eq 2 ]]; then
-        echo "Error: tar encountered a fatal error backing up $SOURCE."
+        echo "ERROR: tar encountered a fatal error backing up $SOURCE."
         rm -f "$ARCHIVE_PATH"
         continue
     elif [[ "$TAR_EXIT" -eq 1 ]]; then
@@ -147,7 +147,10 @@ for SOURCE in $BACKUP_DIR; do
     if tar -I "zstd -T0" -tf "$ARCHIVE_PATH" > /dev/null; then
         echo "INFO: Archive Verified"
     else
-        echo "Error: Archive corrupted"
+        echo "ERROR: Archive corrupted"
         exit 1
     fi
+
+    # Perform Clean UP
+    find "$TARGET_DIR" -name "$BASE_NAME-*.tar.zst" -type f -mtime +"$CLEANUP_DAYS" -delete
 done
