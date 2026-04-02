@@ -97,6 +97,7 @@ fi
 TARGET_DEV=$( stat -c "%d" "$TARGET_DIR")
 
 for SOURCE in $BACKUP_DIR; do
+    echo "INFO: Processing $SOURCE"
     if [[ ! -d "$SOURCE" ]]; then
         echo "ERROR: Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
         continue
@@ -114,10 +115,7 @@ for SOURCE in $BACKUP_DIR; do
             echo "INFO: Disk Secure is not specified - processing anyway"
         fi
     fi
-done
-
-# Archive Source Dirs
-for SOURCE in $BACKUP_DIR; do 
+    # Archive Source Dirs
     # Define paths
     BASE_NAME=$(basename "$SOURCE")
     DIR_NAME=$(dirname "$SOURCE")
