@@ -1,0 +1,7 @@
+https://www.google.com
+https://github.com
+https://httpbin.org/status/403
+https://httpbin.org/status/418
+https://httpbin.org/status/502
+https://httpbin.org/status/302
+https://donotexists.com
