@@ -100,7 +100,7 @@ fi
 
 TARGET_DEV=$( stat -c "%d" "$TARGET_DIR")
 
-for SOURCE in $BACKUP_DIR; do
+for SOURCE in "${BACKUP_DIR[@]}"; do
     log_info "Processing $SOURCE"
     if [[ ! -d "$SOURCE" ]]; then
         log_error "Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
