@@ -148,11 +148,20 @@ for SOURCE in $BACKUP_DIR; do
     # Verify the archive
     if tar -I "zstd -T0" -tf "$ARCHIVE_PATH" > /dev/null; then
         log_info "Archive Verified"
+
+        # Perform Clean Up if verification passed
+        log_info "Running cleanup for $BASE_NAME backups older than $CLEANUP_DAYS days"
+        DELETED_FILES=$(find "$TARGET_DIR" -name "$BASE_NAME-*.tar.zst" -type f -mtime +"$CLEANUP_DAYS" -print -delete)
+
+        if [[ -n "${DELETED_FILES}" ]]; then
+            log_info "Successfully cleaned up the following old backups:"
+            log_info "${DELETED_FILES}"
+        else
+            log_info "No backups older than $CLEANUP_DAYS days found. Nothing to clean up"
+        fi
+
     else
         log_error "Archive corrupted"
         exit 1
     fi
-
-    # Perform Clean UP
-    find "$TARGET_DIR" -name "$BASE_NAME-*.tar.zst" -type f -mtime +"$CLEANUP_DAYS" -delete
 done
