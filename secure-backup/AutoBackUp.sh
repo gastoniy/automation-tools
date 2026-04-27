@@ -14,6 +14,10 @@ CLEANUP_DAYS=""
 DISK_SECURE=""
 CURRENT_DATE=$(date +%F-%H:%M)
 
+log_info() { echo "INFO: $1"; logger -t "$0" "INFO: $1"; }
+log_error() { echo "ERROR: $1"; logger -t "$0" "ERROR: $1"; }
+log_warn() { echo "WARNING: $1"; logger -t "$0" "WARNING: $1"; }
+
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -60,27 +64,27 @@ done
 
 # Enforce mutuality
 if [[ "$USE_CONFIG" == "true" && "$USE_CLI_OPTIONS" == "true"  ]]; then
-    echo "ERROR: -f option can't be combined with other CLI arguments"
+    log_error "-f option can't be combined with other CLI arguments"
     exit 1
 fi
 
 # Apply options based oņ user choice
 if [[ "$USE_CONFIG" == "true" ]]; then
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        echo "ERROR: Config file not found at $CONFIG_FILE"
+        log_error "Config file not found at $CONFIG_FILE"
         exit 1
     fi
-    echo "INFO: Loading configuration file from $CONFIG_FILE"
+    log_info "Loading configuration file from $CONFIG_FILE"
     source "$CONFIG_FILE"
 
 elif [[ "$USE_CLI_OPTIONS" == "true" ]]; then
     # Validate Required Values
     if [[ -z "$BACKUP_DIR" || -z "$TARGET_DIR" ]]; then
-        echo "ERROR: Specify backup directory [-d] AND destination directory [-t]"
+        log_error "Specify backup directory [-d] AND destination directory [-t]"
         exit 1
     fi
 else
-    echo "ERROR: No arguments provided. Run '$0 -h' for help."
+    log_error "No arguments provided. Run '$0 -h' for help."
     exit 1
 fi
 
@@ -90,16 +94,16 @@ DISK_SECURE="${DISK_SECURE:-false}"
 
 # Check source and destination directories
 if [[ ! -d "$TARGET_DIR" ]]; then
-    echo "ERROR: Destination does not exist"
+    log_error "Destination does not exist"
     exit 1
 fi
 
 TARGET_DEV=$( stat -c "%d" "$TARGET_DIR")
 
 for SOURCE in $BACKUP_DIR; do
-    echo "INFO: Processing $SOURCE"
+    log_info "Processing $SOURCE"
     if [[ ! -d "$SOURCE" ]]; then
-        echo "ERROR: Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
+        log_error "Specified source [$SOURCE] does not exist or is not a directory. Skipping..."
         continue
     fi
 
@@ -107,12 +111,12 @@ for SOURCE in $BACKUP_DIR; do
 
     if [[ "$SOURCE_DEV" == "$TARGET_DEV" ]]; then
 
-        echo "WARNING: Backing Up to the same mount point (device)"
+        log_warn "Backing Up to the same mount point (device)"
         if [[ "$DISK_SECURE" == "true" ]]; then
-            echo "ERROR: Secure Option is Specified. Quitting..."
+            log_error "Secure Option is Specified. Quitting..."
             exit 1
         else
-            echo "INFO: Disk Secure is not specified - processing anyway"
+            log_info "Disk Secure is not specified - processing anyway"
         fi
     fi
     # Archive Source Dirs
@@ -121,7 +125,7 @@ for SOURCE in $BACKUP_DIR; do
     DIR_NAME=$(dirname "$SOURCE")
     ARCHIVE_PATH="$TARGET_DIR/${BASE_NAME}-${CURRENT_DATE}.tar.zst"
 
-    echo "INFO: Backing up $SOURCE to $ARCHIVE_PATH"
+    log_info "Backing up $SOURCE to $ARCHIVE_PATH"
 
     tar -I "zstd -T0" -cp \
     --numeric-owner \
@@ -132,20 +136,20 @@ for SOURCE in $BACKUP_DIR; do
     TAR_EXIT=$?
 
     if [[ "$TAR_EXIT" -eq 2 ]]; then
-        echo "ERROR: tar encountered a fatal error backing up $SOURCE."
+        log_error "tar encountered a fatal error backing up $SOURCE."
         rm -f "$ARCHIVE_PATH"
         continue
     elif [[ "$TAR_EXIT" -eq 1 ]]; then
-        echo "WARNING: tar completed, but some files were modified during the backup. Path: $ARCHIVE_PATH"
+        log_warn "tar completed, but some files were modified during the backup. Path: $ARCHIVE_PATH"
     else
-        echo "INFO: tar archive created. Path: $ARCHIVE_PATH"
+        log_info "tar archive created. Path: $ARCHIVE_PATH"
     fi
 
     # Verify the archive
     if tar -I "zstd -T0" -tf "$ARCHIVE_PATH" > /dev/null; then
-        echo "INFO: Archive Verified"
+        log_info "Archive Verified"
     else
-        echo "ERROR: Archive corrupted"
+        log_error "Archive corrupted"
         exit 1
     fi
 
