@@ -2,21 +2,16 @@
 
 set -u
 
-# Redundant ethernet bring-up for the ThinkPad Workstation.
-#
-# Auto-detects whether enp4s0 is plugged into the Home-Lab (tagged VLAN 10 + 20 on other side)
-# or a normal/untagged switch port, and configures NetworkManager accordingly.
-#
 # Usage:
-#   sudo ./setup_ethernet.sh [auto|home|other]
+#   sudo ./setup_ethernet.sh [auto|home|other|help]
 #     auto  (default) - try Home-Lab, confirm or fall back to plain untagged DHCP
-#     home            - force Home-Lab (VLAN10 + VLAN20 + bridge)
+#     home            - force Home-Lab
 #     other           - force plain untagged DHCP on enp4s0
+#     help            - print this usage info
 
 # Configuration (overridable via environment)
 PHYS_IF=${PHYS_IF:-"enp4s0"}
 VLAN10_IF=${VLAN10_IF:-"vlan10"}          # probed for a lease to confirm Home-Lab
-                                        # vlan20 does not get address in Home-Lab
 PLAIN_PROFILE=${PLAIN_PROFILE:-"Plain-Ethernet"}
 DHCP_WAIT=${DHCP_WAIT:-15}                # seconds to wait for a lease
 HOME_PROFILES=("Auto Ethernet" "Home-VLAN10" "Lab-VLAN20" "Bridge-Lab")
@@ -62,12 +57,12 @@ down_profile() {
     fi
 }
 
-# Succeeds if the given interface currently holds an IPv4 address.
+# Succeeds if the given interface currently holds an IPv4 address
 has_lease() {
     nmcli -g IP4.ADDRESS device show "${1}" 2>/dev/null | grep -q .
 }
 
-# Poll has_lease once per second, up to $2 seconds.
+# Poll has_lease once per second, up to $2 seconds
 wait_for_lease() {
     local iface="$1"
     local timeout="$2"
@@ -95,9 +90,9 @@ ensure_plain_profile() {
 }
 
 activate_home() {
-    log_info "Activating Home-Lab configuration (VLAN 10 + 20)..."
+    log_info "Activating Home-Lab configuration..."
     down_profile "${PLAIN_PROFILE}"
-    # "Auto Ethernet" first: it reclaims enp4s0 and keeps the link up for the tags.
+    # "Auto Ethernet" first: it reclaims enp4s0 and keeps the link up for the tags
     for name in "${HOME_PROFILES[@]}"; do
         up_profile "${name}"
     done
@@ -117,9 +112,10 @@ report_state() {
         | grep -E "${PHYS_IF}|vlan|br_lab" || true
 }
 
-# --- Main --------------------------------------------------------------------
-
-ensure_plain_profile
+# Main
+if [[ "$1" != "help" && "$1" =~ ^(auto|home|other)$ ]]; then
+    ensure_plain_profile
+fi
 
 case "${MODE}" in
     home)
@@ -144,8 +140,12 @@ case "${MODE}" in
             fi
         fi
         ;;
+    help)
+        sed -n '/^# Usage:/,/^$/p' "$0" | sed 's/^# \?//'
+        exit 0
+    ;;
     *)
-        log_error "Unknown mode: '${MODE}'. Use: auto | home | other"
+        log_error "Unknown mode: '${MODE}'. Use '$0 help' for usage info"
         exit 1
         ;;
 esac
