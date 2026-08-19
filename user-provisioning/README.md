@@ -79,3 +79,7 @@ apt-get update && apt-get install -y openssh-client   # for ssh-keygen
 Then verify: `getent passwd <user>`, `id <user>` (group membership),
 `ls -la /home/<user>/.ssh` (700 / 600), and that `authorized_keys` has no
 duplicate lines after the second run.
+
+## Architecture Decisions
+
+See the docs/adr/ directory for technical tradeoffs made in this script, such as dependency minimization and validation fallbacks.
