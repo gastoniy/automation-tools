@@ -1,0 +1,16 @@
+# user_landing.sh - example configuration
+#
+# One record per line:   username, group(s), ssh_pub_key
+#
+#   - username    : must start with a lowercase letter or '_' ([a-z_][a-z0-9_-]*)
+#   - group(s)    : a single group, or several separated by ';' (e.g. sudo;docker)
+#                   The user is added to each as a SUPPLEMENTARY group
+#                   Leave empty for no extra groups: "carol, , ssh-ed25519 ..."
+#   - ssh_pub_key : the full public key line (type + base64 body + optional comment)
+#
+# Lines starting with '#' and blank lines are ignored
+# Whitespace around each field is trimmed
+
+alice, sudo, ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleExampleExampleExampleExampleExample alice@laptop
+bob, sudo;docker, ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQExampleExampleExampleExampleExample bob@workstation
+carol, , ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnotherExampleAnotherExampleAnotherExample carol@vm
