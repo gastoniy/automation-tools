@@ -1,0 +1,31 @@
+# Custom Orphaned Resource Reaper - Configuration File
+#
+# When passed with -f/--file this file is sourced, so it must be valid bash.
+# Every setting below is optional; anything you omit falls back to its default.
+# Note: -f can't be combined with CLI value flags -- the file provides everything.
+
+# Uptime threshold in hours. Running containers older than this become
+# candidates for reaping. Fractional values are allowed.
+HOURS="24"
+
+# Protected environment. Containers carrying the label environment=<this value>
+# are always exempt, no matter how old they are.
+PROTECT_ENV="production"
+
+# How "age" is measured:
+#   started = true uptime since the container last started (State.StartedAt)
+#   created = time since the container was created (cheaper, one API call)
+# Accepted values: "started" or "created"
+AGE_BASIS="started"
+
+# Safety switch. "false" is a dry-run that only reports what it would stop.
+# Set to "true" to actually issue graceful shutdowns.
+# Accepted values: "true" or "false"
+APPLY="false"
+
+# Graceful stop grace period in seconds. The daemon sends SIGTERM, waits this
+# long, then SIGKILLs anything still running.
+STOP_TIMEOUT="10"
+
+# Path to the Docker daemon Unix socket.
+SOCKET="/var/run/docker.sock"
