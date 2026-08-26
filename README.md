@@ -13,6 +13,7 @@ This repository consolidates various bash utilities for network configuration, i
 | **`network-virtualization/`** | `setup-bridge.sh` | An idempotent utility to provision a network bridge and a TAP interface for virtualization environments. |
 | **`network-workstation/`** | `setup-ethernet.sh` | Manages redundant Ethernet bring-up for a workstation by interacting with NetworkManager. |
 | **`fleet-scanning/`** | `fleet-port-scanner.sh` | A lightweight, timeout-based port scanner utilizing `nc` (netcat) to rapidly verify service availability. |
+| **`custom-resource-reaper/`** | `orphan-reaper.sh` | A utility to safely reap stale running Docker containers based on uptime thresholds by directly interacting with the Docker socket using `curl` and `jq`. |
 
 > **Documentation Note:** Each directory contains its own dedicated `README.md` and configuration example files (e.g., `users.csv.example`, `http-health-config.example`, `fleet-config.example`) detailing specific usage instructions, required permissions, and idempotency guarantees.
 
