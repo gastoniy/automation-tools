@@ -1,4 +1,4 @@
-# Secure Auto Back Up
+# Secure-backup
 A robust, multithreaded bash script for secure and automated directory backups. 
 Designed for reliability, it includes mount-point verification, archive integrity checks, and automated retention policies.
 Firstly was created to backup Obsidian vault, but enhanced and modernized to archive different directories.
@@ -11,21 +11,12 @@ Firstly was created to backup Obsidian vault, but enhanced and modernized to arc
 * **Automated Cleanup:** Built-in rotation policy to find and remove backups older than a specified number of days.
 * **Flexible Execution:** Can be driven via direct CLI arguments or a central configuration file.
 
-## Installation
-Clone the repository and make the script executable:
-
-```bash
-git clone [https://github.com/gastoniy/SecureAutoBackUp.git](https://github.com/gastoniy/SecureAutoBackUp.git)
-cd SecureAutoBackUp
-chmod +x AutoBackUp.sh
-```
-
 ## Usage
 You can run the script using direct command-line arguments or by pointing it to a configuration file.
 
 ### Option A: Using CLI Arguments
 ```
-./AutoBackUp.sh -d "/var/www/html /etc/nginx" -t "/mnt/backup_drive" -c 14 -s
+./secure-backup.sh -d "/var/www/html /etc/nginx" -t "/mnt/backup_drive" -c 14 -s
 ```
 Flags:
 
@@ -39,11 +30,11 @@ Flags:
 
 Copy the example configuration file:
 ```
-cp autobackup.conf.example autobackup.conf
+cp secure-backup.conf.example secure-backup.conf
 ```
-Edit autobackup.conf with your preferred text editor.
+Edit secure-backup.conf with your preferred text editor.
 
 Run the script pointing to the config file:
 ```
-./AutoBackUp.sh -f /path/to/autobackup.conf
+./secure-backup.sh -f /path/to/secure-backup.conf
 ```
