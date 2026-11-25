@@ -1,0 +1,20 @@
+# SecureAutoBackUp - Configuration File
+
+# Space-separated list of directories to back up.
+# Enclose the entire list in ().
+# Example: BACKUP_DIR=("/etc/nginx" "/var/www/html" "/home/user/data")
+BACKUP_DIR=("/var/lib/docker/volumes" "/etc")
+
+# The destination directory where the archives will be saved.
+# Ensure this directory exists and the user has write permissions.
+# Example: TARGET_DIR="/mnt/backup_drive/daily"
+TARGET_DIR="/mnt/nfs_share/backups"
+
+# Number of days to retain old backups.
+# Archives older than this value will be automatically deleted.
+# Example: CLEANUP_DAYS="14"
+CLEANUP_DAYS="7"
+
+# Disk Secure feature strictly prevents backing up data onto the same mount point.
+# Accepted values: "true" or "false"
+DISK_SECURE="true"
